@@ -1,0 +1,2 @@
+/*forth runtime*/
+var stack=[];
