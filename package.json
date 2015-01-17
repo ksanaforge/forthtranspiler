@@ -1,0 +1,28 @@
+{
+  "name": "forthtranspiler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "f2js.js",
+  "dependencies": {
+    "source-map": "*"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ksanaforge/forthtranspiler"
+  },
+  "keywords": [
+    "forth",
+    "javascript",
+    "transpile"
+  ],
+  "author": "yapcheahshen@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ksanaforge/forthtranspiler/issues"
+  },
+  "homepage": "https://github.com/ksanaforge/forthtranspiler"
+}
