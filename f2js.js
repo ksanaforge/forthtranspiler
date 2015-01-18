@@ -13,22 +13,23 @@
 var fs=require("fs");
 var SourceMapGenerator=require("source-map").SourceMapGenerator;
 
-
 var argv=process.argv;
 if (argv.length<3) {
-	console.log("missing input filename")
+	console.log("missing input filename");
 	return;
 }
 var inputfn=argv[2];
 var input=fs.readFileSync(inputfn,"utf8").replace(/\r\n/g,"\n").split("\n");
+
+//forth runtime
 var runtime=fs.readFileSync("runtime.js","utf8").replace(/\r\n/g,"\n").split("\n");
 var outputfn=argv[2].substr(0,argv[2].length-1)+"js";
 
 var sourcemap=new SourceMapGenerator({file:outputfn});
 
-var codegen=[];
+var codegen=[];                //generated javsacript code
 var forthnline=0,forthncol=0;  //line and col of forth source code
-var jsline=runtime.length;
+var jsline=runtime.length;     //generated javascript code line count, for source map
 
 var dolit=function(n,nextinst) {
 	var adv=1;
@@ -46,16 +47,16 @@ var dolit=function(n,nextinst) {
 	return adv;
 }
 var dup=function() {
-	codegen.push("stack.push(stack[0]) ");
+	codegen.push("stack.push(stack[0]);");
 }
 var multiply=function() {
-	codegen.push("stack.push(stack.pop()*stack.pop())");
+	codegen.push("stack.push(stack.pop()*stack.pop());");
 }
 var plus=function() {
-	codegen.push("stack.push(stack.pop()+stack.pop())");
+	codegen.push("stack.push(stack.pop()+stack.pop());");
 }
 var dot=function() {
-	codegen.push("console.log(stack.pop())");
+	codegen.push("console.log(stack.pop());");
 }
 var words={
 	"dup" : dup,
@@ -73,7 +74,7 @@ var addMapping=function(name) {
 	  },
 	  source: inputfn,
 	  original: {
-	    line: forthnline+1,
+	    line: forthnline,
 	    column: forthncol
 	  },
 	  name: name
@@ -84,7 +85,7 @@ var token2code=function(sources){
 	var i=0;
 	var codes=[];
 	for (i=0;i<sources.length;i++) {
-		forthnline=i;
+		forthnline=i; 
 		source=sources[i];
 		source.replace(/[^ ]+/g,function(m,idx){
 			forthncol=idx;
