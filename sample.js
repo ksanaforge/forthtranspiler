@@ -1,10 +1,12 @@
 /*forth runtime*/
 var stack=[];
-stack.push(8);
-stack.push(8);
-stack.push(stack.pop()*stack.pop())
-stack.push(stack[0]) 
-console.log(stack.pop())
-stack[0]+=5;
-console.log(stack.pop())
+stack.push(1);
+stack.push(2);
+stack.push(3);
+stack.push(3);
+stack.push(stack.pop()*stack.pop());
+stack.push(stack[stack.length-1]);
+console.log(stack.pop());
+stack[stack.length-1]+=5;
+console.log(stack.pop());
 //# sourceMappingURL=sample.js.map

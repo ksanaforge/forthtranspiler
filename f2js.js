@@ -9,9 +9,10 @@
    https://hacks.mozilla.org/2013/05/compiling-to-javascript-and-debugging-with-source-maps/
 
 */
-
+debugger
 var fs=require("fs");
 var SourceMapGenerator=require("source-map").SourceMapGenerator;
+console.log('require("source-map")');
 
 var argv=process.argv;
 if (argv.length<3) {
@@ -37,9 +38,9 @@ var dolit=function(n,nextinst) {
 		codegen.push("stack.push("+n+");");
 		codegen.push("stack.push("+n+");");
 	} else if (nextinst==plus) {
-		codegen.push("stack[0]+="+n+";");
+		codegen.push("stack[stack.length-1]+="+n+";");
 	} else if (nextinst==multiply) {
-		codegen.push("stack[0]*="+n+";");
+		codegen.push("stack[stack.length-1]*="+n+";");
 	} else {
 		codegen.push("stack.push("+n+");");
 		adv=0;
@@ -47,7 +48,7 @@ var dolit=function(n,nextinst) {
 	return adv;
 }
 var dup=function() {
-	codegen.push("stack.push(stack[0]);");
+	codegen.push("stack.push(stack[stack.length-1]);"); // stack[stack.length-1] ??????
 }
 var multiply=function() {
 	codegen.push("stack.push(stack.pop()*stack.pop());");
@@ -85,7 +86,7 @@ var token2code=function(sources){
 	var i=0;
 	var codes=[];
 	for (i=0;i<sources.length;i++) {
-		forthnline=i; 
+		forthnline=i+1; 
 		source=sources[i];
 		source.replace(/[^ ]+/g,function(m,idx){
 			forthncol=idx;
