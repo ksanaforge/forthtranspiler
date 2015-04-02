@@ -1,5 +1,7 @@
 /*forth runtime*/
 var stack=[];
+
+//runtime ends here
 stack.push(1);
 stack.push(2);
 stack.push(3);
