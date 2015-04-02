@@ -11,8 +11,6 @@
 */
 
 var fs=require("fs");
-var SourceMapGenerator=require("source-map").SourceMapGenerator;
-console.log('require("source-map")');
 
 var argv=process.argv;
 if (argv.length<3) {
@@ -26,15 +24,13 @@ var input=fs.readFileSync(inputfn,"utf8").replace(/\r\n/g,"\n").split("\n");
 var runtime=fs.readFileSync("./src/runtime.js","utf8").replace(/\r\n/g,"\n").split("\n");
 var outputfn=argv[2].substr(0,argv[2].length-1)+"js";
 
-var sourcemap=new SourceMapGenerator({file:outputfn});
 
+var transpile=require("./src/transpile");
 
-transpile=require("./src/transpile");
+var generated=transpile(input,runtime,inputfn,outputfn);
 
-var codegen=transpile(input,runtime,sourcemap,inputfn);
-sourcemap.file=outputfn;
-var output=runtime.join("\n")+"\n"+codegen.join("\n")+"\n//# sourceMappingURL="+outputfn+".map";
+var output=runtime.join("\n")+"\n"+generated.codegen.join("\n")+"\n//# sourceMappingURL="+outputfn+".map";
 
 console.log("output to "+outputfn);
 fs.writeFile(outputfn,output,"utf8");
-fs.writeFile(outputfn+".map",sourcemap.toString() ,"utf8");
+fs.writeFile(outputfn+".map",generated.sourcemap.toString() ,"utf8");

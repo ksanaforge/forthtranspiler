@@ -1,4 +1,7 @@
-var transpile=function(sources,runtime,sourcemap,inputfn) {
+var transpile=function(sources,runtime,inputfn,outputfn) {
+
+	var SourceMapGenerator=require("source-map").SourceMapGenerator;
+	var sourcemap=new SourceMapGenerator({file:outputfn||inputfn+"js"});
 
 	var dolit=function(n,nextinst) {
 		var adv=1;
@@ -94,7 +97,9 @@ var transpile=function(sources,runtime,sourcemap,inputfn) {
 		if (adv) i+=adv;
 		i++;
 	}
-	return codegen;
+
+
+	return {codegen:codegen,sourcemap:sourcemap};
 }
 
 module.exports=transpile;
