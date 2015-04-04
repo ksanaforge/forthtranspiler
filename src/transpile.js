@@ -8,45 +8,7 @@ var transpilejs=function(forthCodes,runtime,inputfn,outputfn) {
 	var iLin=0, iCol=0, iTok=0, iOpCode=0;
 	var line='', token, opCode;
 	if(typeof(lines)=='string') lines=forthCodes.split(/\r?\n/);
-	var nextLine=function(){
-		line=undefined;
-		if(iLin<lines.length)
-			line=lines[iLin++], iCol=0, tokens=line.split(/\s+/), iTok=0;
-		return line;
-	}
-	var nextToken=function(){
-		token=undefined;
-		if(iTok<tokens.length){
-			var i=iTok, j=iCol[i];
-			token=tokens[iTok++];
-			if(tracing) console.log('\tcol '+(j<10?'0':'')+j+' token '+i+': '+JSON.stringify(token));
-		}
-		return token;
-	}
-	var checkNextToken=function(){
-		var token=undefined;
-		if(iTok<tokens.length)
-			token=tokens[iTok];
-		return token;
-	}
-	var doLit=function(n) {	/// doLit ( -- n )
-		n=JSON.stringify(n);
-		var adv=1, nextOpc=opCodes[iOpCode+1];
-		if(nextOpc){
-			if 		   (nextOpc==dup		)
-				codegen.push("stack.push("+n+");"), codegen.push("stack.push("+n+");");
-			else	if (nextOpc==plus		)
-				codegen.push("stack[stack.length-1]+="+n+";");
-			else	if (nextOpc==minus	)
-				codegen.push("stack[stack.length-1]-="+n+";");
-			else	if (nextOpc==multiply	)
-				codegen.push("stack[stack.length-1]*="+n+";");
-			else
-				codegen.push("stack.push("+n+");"), adv=0; /// no extra advance
-		} else
-				codegen.push("stack.push("+n+");"), adv=0; /// no extra advance
-		return adv;
-	}
+
 	//////////////////////////////////////////////////////////////////////////
 	// core words
 	//////////////////////////////////////////////////////////////////////////
@@ -65,9 +27,28 @@ var transpilejs=function(forthCodes,runtime,inputfn,outputfn) {
 	var minus=function minus() { /// -	( a b -- a-b )
 		codegen.push("var tos=stack.pop();stack.push(stack.pop()-tos);");
 	}
+
 	//////////////////////////////////////////////////////////////////////////
-	/// opCode constructing words 
+	/// constructing words for opCodes
 	//////////////////////////////////////////////////////////////////////////
+	var doLit=function(n) {	/// doLit ( -- n )
+		n=JSON.stringify(n);
+		var adv=1, nextOpc=opCodes[iOpCode+1];
+		if(nextOpc){
+			if 		   (nextOpc==dup		)
+				codegen.push("stack.push("+n+");"), codegen.push("stack.push("+n+");");
+			else	if (nextOpc==plus		)
+				codegen.push("stack[stack.length-1]+="+n+";");
+			else	if (nextOpc==minus	)
+				codegen.push("stack[stack.length-1]-="+n+";");
+			else	if (nextOpc==multiply	)
+				codegen.push("stack[stack.length-1]*="+n+";");
+			else
+				codegen.push("stack.push("+n+");"), adv=0; /// no extra advance
+		} else
+				codegen.push("stack.push("+n+");"), adv=0; /// no extra advance
+		return adv;
+	}
 	var setValue=function(name) { /// setVal('v') ( n -- )
 		codegen.push("var "+name+"=stack.pop();")
 		return 1;
@@ -125,6 +106,9 @@ var transpilejs=function(forthCodes,runtime,inputfn,outputfn) {
 		eval('newXt=function(){runColon("'+newName+'")}');
 		defined[newName]=newXt; // then use newName to runColon
 	}
+	//////////////////////////////////////////////////////////////////////////
+	/// name list
+	//////////////////////////////////////////////////////////////////////////
 	var words = { "dup"		: {xt:dup		,defining:0} /// dup	( n -- n n )
 				, "*"		: {xt:multiply	,defining:0} /// *	 	( a b -- a*b )
 				, "+"		: {xt:plus		,defining:0} /// +	 	( a b -- a+b )
@@ -135,6 +119,25 @@ var transpilejs=function(forthCodes,runtime,inputfn,outputfn) {
 				, ";"		: {xt:semic		,defining:1} /// ;		( -- )
 				}
 	
+	//////////////////////////////////////////////////////////////////////////
+	/// tools
+	//////////////////////////////////////////////////////////////////////////
+	var nextToken=function(){
+		token=undefined;
+		if(iTok<tokens.length){
+			var i=iTok, j=iCol[i];
+			token=tokens[iTok++];
+			if(tracing) console.log('\tcol '+(j<10?'0':'')+j+' token '+i+': '+JSON.stringify(token));
+		}
+		return token;
+	}
+	var checkNextToken=function(){
+		var token=undefined;
+		if(iTok<tokens.length)
+			token=tokens[iTok];
+		return token;
+	}
+
 	var SourceMapGenerator=require("source-map").SourceMapGenerator;
 	var sourcemap=new SourceMapGenerator({file:outputfn||inputfn+"js"});
 
@@ -156,6 +159,10 @@ var transpilejs=function(forthCodes,runtime,inputfn,outputfn) {
 	var showOpInfo=function(msg){
 		console.log('\t\t\t\topCode '+opCodes.length+': '+msg);
 	}
+
+	//////////////////////////////////////////////////////////////////////////
+	/// transpiling loop to generat opCodes first
+	//////////////////////////////////////////////////////////////////////////
 	var forth2js=function(lines){
 		opCodes=[];
 		defined={};
@@ -216,10 +223,11 @@ var transpilejs=function(forthCodes,runtime,inputfn,outputfn) {
 	var forthnline=0,forthncol=0;  //line and col of forth source code
 
 	var opCodes=forth2js(lines);
-	for(var i=0;i<opCodes.length;i++){
-		var op=opCodes[i];
-	}
-	var i=0; 
+	var i=0;
+
+	//////////////////////////////////////////////////////////////////////////
+	/// transpiling loop to generat jsCodes next
+	//////////////////////////////////////////////////////////////////////////
 	while(i<opCodes.length){
 		var adv=0;
 		if (typeof opCodes[i]=="function") {
@@ -235,11 +243,10 @@ var transpilejs=function(forthCodes,runtime,inputfn,outputfn) {
 
 var runtimecode	=require("fs").readFileSync("./src/runtime.js","utf8");
 var transpile=function(forth) {
-if(tracing) console.log('\nforthCode:',JSON.stringify(forth[0]));
+	if(tracing) console.log('\nforthCode:',JSON.stringify(forth[0]));
 	var trans=transpilejs(forth,runtimecode,"test");
 	var code =	"(function(){"				+"\n"
-			 +	"var stack=[];"				+"\n"
-			 +	"var runtime={stack:stack};"+"\n"
+			 +	runtimecode					+"\n"
 			 +	trans.jsCodes.join("\n")	+"\n"
 			 +	"return runtime;"			+"\n"
 			 +	"})()";
