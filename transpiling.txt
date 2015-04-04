@@ -1,0 +1,205 @@
+﻿C:\ksana2015\forthtranspiler>mocha
+
+
+  A.  test literals
+
+forthCode: "0 1 23 -4 56789"
+
+transpiling:
+        line 0: "0 1 23 -4 56789"
+        col 00 token 0: "0"
+                                opCode 0: 0
+        col 02 token 1: "1"
+                                opCode 1: 1
+        col 04 token 2: "23"
+                                opCode 2: 23
+        col 07 token 3: "-4"
+                                opCode 3: -4
+        col 10 token 4: "56789"
+                                opCode 4: 56789
+jsCode:
+        0       stack.push(0);
+        1       stack.push(1);
+        2       stack.push(23);
+        3       stack.push(-4);
+        4       stack.push(56789);
+
+result stack: [0,1,23,-4,56789]
+
+    √ A1.  test integers ok
+
+forthCode: "0.1 -2.3 -4.5e6"
+
+transpiling:
+        line 0: "0.1 -2.3 -4.5e6"
+        col 00 token 0: "0.1"
+                                opCode 0: 0.1
+        col 04 token 1: "-2.3"
+                                opCode 1: -2.3
+        col 09 token 2: "-4.5e6"
+                                opCode 2: -4500000
+jsCode:
+        0       stack.push(0.1);
+        1       stack.push(-2.3);
+        2       stack.push(-4500000);
+
+result stack: [0.1,-2.3,-4500000]
+
+    √ A2.  test floats ok
+
+forthCode: "'0.1' 'abc' 'deFghi'"
+
+transpiling:
+        line 0: "'0.1' 'abc' 'deFghi'"
+        col 00 token 0: "'0.1'"
+                                opCode 0: "0.1"
+        col 06 token 1: "'abc'"
+                                opCode 1: "abc"
+        col 12 token 2: "'deFghi'"
+                                opCode 2: "deFghi"
+jsCode:
+        0       stack.push("0.1");
+        1       stack.push("abc");
+        2       stack.push("deFghi");
+
+result stack: ["0.1","abc","deFghi"]
+
+    √ A3.  test strings ok
+
+  B.  test core words
+
+forthCode: "3 5 +"
+
+transpiling:
+        line 0: "3 5 +"
+        col 00 token 0: "3"
+                                opCode 0: 3
+        col 02 token 1: "5"
+                                opCode 1: 5
+        col 04 token 2: "+"
+                                opCode 2: plus()
+jsCode:
+        0       stack.push(3);
+        1       stack.push(5);
+        2       var tos=stack.pop();stack.push(stack.pop()+tos);
+
+result stack: [8]
+
+    √ B1.  test + numbers ok
+
+forthCode: "5 3 -"
+
+transpiling:
+        line 0: "5 3 -"
+        col 00 token 0: "5"
+                                opCode 0: 5
+        col 02 token 1: "3"
+                                opCode 1: 3
+        col 04 token 2: "-"
+                                opCode 2: minus()
+jsCode:
+        0       stack.push(5);
+        1       stack.push(3);
+        2       var tos=stack.pop();stack.push(stack.pop()-tos);
+
+result stack: [2]
+
+    √ B2.  test - numbers ok
+
+forthCode: "'3' 5 +"
+
+transpiling:
+        line 0: "'3' 5 +"
+        col 00 token 0: "'3'"
+                                opCode 0: "3"
+        col 04 token 1: "5"
+                                opCode 1: 5
+        col 06 token 2: "+"
+                                opCode 2: plus()
+jsCode:
+        0       stack.push("3");
+        1       stack.push(5);
+        2       var tos=stack.pop();stack.push(stack.pop()+tos);
+
+result stack: ["35"]
+
+    √ B3.  test + strings ok
+
+forthCode: "3.5 dup *"
+
+transpiling:
+        line 0: "3.5 dup *"
+        col 00 token 0: "3.5"
+                                opCode 0: 3.5
+        col 04 token 1: "dup"
+                                opCode 1: dup()
+        col 08 token 2: "*"
+                                opCode 2: multiply()
+jsCode:
+        0       stack.push(3.5);
+        1       stack.push(3.5);
+        2       stack.push(stack.pop()*stack.pop());
+
+result stack: [12.25]
+
+    √ B4.  test dup * ok
+
+  C.  test defining words
+
+forthCode: "5 value a 3 a +"
+
+transpiling:
+        line 0: "5 value a 3 a +"
+        col 00 token 0: "5"
+                                opCode 0: 5
+        col 02 token 1: "value"
+        col 08 token 2: "a"
+                                opCode 1: setValue("a")
+        col 10 token 3: "3"
+                                opCode 2: 3
+        col 12 token 4: "a"
+                                opCode 3: getValue("a")
+        col 14 token 5: "+"
+                                opCode 4: plus()
+jsCode:
+        0       stack.push(5);
+        1       var a=stack.pop();
+        2       stack.push(3);
+        3       stack.push(a);
+        4       var tos=stack.pop();stack.push(stack.pop()+tos);
+
+result stack: [8]
+
+    √ C1.  test value ok
+
+forthCode: ": x 5 + ; 3 x"
+
+transpiling:
+        line 0: ": x 5 + ; 3 x"
+        col 00 token 0: ":"
+        col 02 token 1: "x"
+                                opCode 0: setColon("x")
+        col 04 token 2: "5"
+                                opCode 1: 5
+        col 06 token 3: "+"
+                                opCode 2: plus()
+        col 08 token 4: ";"
+                                opCode 3: endColon()
+        col 10 token 5: "3"
+                                opCode 4: 3
+        col 12 token 6: "x"
+                                opCode 5: runColon("x")
+jsCode:
+        0       var x=function(){
+        1               stack.push(5);
+        2               var tos=stack.pop();stack.push(stack.pop()+tos);
+        3       }
+        4       stack.push(3);
+        5       x();
+
+result stack: [8]
+
+    √ C2.  test : ; ok
+
+
+  9 passing (170ms)
